@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Employee Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <i class="fas fa-user-plus"></i>
+                <h2>Create Account</h2>
+                <p>Register as an Employee</p>
+            </div>
+            <form id="registerForm">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-user-tag"></i>
+                    <input type="text" id="fullname" placeholder="Full Name" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="Email" required>
+                </div>
+                <button type="submit" class="btn-primary">Register <i class="fas fa-check"></i></button>
+                <p class="auth-footer">Already have an account? <a href="login.html">Login here</a></p>
+                <p class="auth-footer"><a href="index.html">← Back to Home</a></p>
+                <div id="message" class="message"></div>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('fullname').value;
+            const email = document.getElementById('email').value;
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = '';
+            messageDiv.style.color = '';
+
+            // Client-side validation
+            if (username.length < 3) {
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'Username must be at least 3 characters';
+                return;
+            }
+            if (password.length < 4) {
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'Password must be at least 4 characters';
+                return;
+            }
+
+            // Role is fixed to EMPLOYEE for public registration
+            const role = 'EMPLOYEE';
+
+            try {
+                const response = await fetch('http://localhost:8080/api/users/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, name, email, role })
+                });
+
+                const errorText = await response.text();
+                if (!response.ok) {
+                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = errorText || 'Registration failed. Try a different username or email.';
+                    return;
+                }
+
+                messageDiv.style.color = 'green';
+                messageDiv.textContent = 'Registration successful! Redirecting to login...';
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+            } catch (err) {
+                console.error(err);
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'Server error. Is the backend running on port 8080?';
+            }
+        });
+    </script>
+</body>
+</html>

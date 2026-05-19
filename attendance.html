@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance - Employee Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header"><i class="fas fa-chart-line"></i><h3>Employee Panel</h3></div>
+            <nav><ul>
+                <li><a href="employee.html">Dashboard</a></li>
+                <li class="active"><a href="attendance.html">Attendance</a></li>
+                <li><a href="attendance-history.html">History</a></li>
+                <li><a href="#" onclick="logout()">Logout</a></li>
+            </ul></nav>
+        </aside>
+        <main class="main-content">
+            <div class="top-nav">
+                <h1>Attendance</h1>
+                <div class="profile"><span id="profileName"></span><i class="fas fa-user-circle"></i></div>
+            </div>
+
+            <div class="card stats-cards">
+                <div class="stat-card"><i class="fas fa-calendar-check"></i><h3 id="presentDays">0</h3><p>Present</p></div>
+                <div class="stat-card"><i class="fas fa-clock"></i><h3 id="lateDays">0</h3><p>Late</p></div>
+                <div class="stat-card"><i class="fas fa-hourglass-half"></i><h3 id="halfDays">0</h3><p>Half Day</p></div>
+                <div class="stat-card"><i class="fas fa-ban"></i><h3 id="absentDays">0</h3><p>Absent</p></div>
+                <div class="stat-card"><i class="fas fa-hourglass-end"></i><h3 id="totalHours">0</h3><p>Total Hours</p></div>
+            </div>
+
+            <div class="card">
+                <h2>Today's Status</h2>
+                <div id="todayStatus"></div>
+                <div class="action-buttons">
+                    <button id="checkInBtn" class="btn-primary">Check In</button>
+                    <button id="checkOutBtn" class="btn-primary">Check Out</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Today's Attendance Details</h2>
+                <div id="todayDetails"></div>
+            </div>
+
+            <div class="card">
+                <h2>Recent Attendance</h2>
+                <div class="table-responsive">
+                    <table id="recentTable">
+                        <thead><tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Hours</th><th>Status</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+
+        const profileName = localStorage.getItem('name') || 'Employee';
+        document.getElementById('profileName').innerText = profileName;
+
+        let currentAttendance = null;
+
+        async function fetchStats() {
+            const res = await fetch('http://localhost:8080/api/attendance/my-stats', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const stats = await res.json();
+                document.getElementById('presentDays').innerText = stats.presentDays;
+                document.getElementById('lateDays').innerText = stats.lateDays;
+                document.getElementById('halfDays').innerText = stats.halfDays;
+                document.getElementById('absentDays').innerText = stats.absentDays;
+                document.getElementById('totalHours').innerText = stats.totalWorkingHours;
+            }
+        }
+
+        async function fetchToday() {
+            const res = await fetch('http://localhost:8080/api/attendance/today', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                currentAttendance = await res.json();
+                const statusDiv = document.getElementById('todayStatus');
+                const detailsDiv = document.getElementById('todayDetails');
+                if (currentAttendance && currentAttendance.id) {
+                    statusDiv.innerHTML = `<p>You have ${currentAttendance.checkOutTime ? 'completed' : 'ongoing'} shift. Status: <strong>${currentAttendance.status}</strong></p>`;
+                    detailsDiv.innerHTML = `
+                        <p><strong>Check In:</strong> ${currentAttendance.checkInTime ? new Date(currentAttendance.checkInTime).toLocaleString() : '-'}</p>
+                        <p><strong>Check Out:</strong> ${currentAttendance.checkOutTime ? new Date(currentAttendance.checkOutTime).toLocaleString() : '-'}</p>
+                        <p><strong>Total Hours:</strong> ${currentAttendance.totalHours || 0}</p>
+                    `;
+                    document.getElementById('checkInBtn').disabled = currentAttendance.checkInTime != null;
+                    document.getElementById('checkOutBtn').disabled = currentAttendance.checkOutTime != null;
+                } else {
+                    statusDiv.innerHTML = '<p>No check-in today.</p>';
+                    detailsDiv.innerHTML = '';
+                    document.getElementById('checkInBtn').disabled = false;
+                    document.getElementById('checkOutBtn').disabled = true;
+                }
+            }
+        }
+
+        async function fetchRecent() {
+            const res = await fetch('http://localhost:8080/api/attendance/my-history', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const tbody = document.querySelector('#recentTable tbody');
+                tbody.innerHTML = '';
+                data.slice(0, 10).forEach(att => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).innerText = att.attendanceDate;
+                    row.insertCell(1).innerText = att.checkInTime ? new Date(att.checkInTime).toLocaleTimeString() : '-';
+                    row.insertCell(2).innerText = att.checkOutTime ? new Date(att.checkOutTime).toLocaleTimeString() : '-';
+                    row.insertCell(3).innerText = att.totalHours || '-';
+                    row.insertCell(4).innerText = att.status;
+                });
+            }
+        }
+
+        document.getElementById('checkInBtn').addEventListener('click', async () => {
+            const res = await fetch('http://localhost:8080/api/attendance/check-in', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            alert(res.ok ? data.message : data.error);
+            if (res.ok) { fetchToday(); fetchStats(); fetchRecent(); }
+        });
+
+        document.getElementById('checkOutBtn').addEventListener('click', async () => {
+            const res = await fetch('http://localhost:8080/api/attendance/check-out', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            alert(res.ok ? data.message : data.error);
+            if (res.ok) { fetchToday(); fetchStats(); fetchRecent(); }
+        });
+
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+        fetchStats();
+        fetchToday();
+        fetchRecent();
+    </script>
+</body>
+</html>

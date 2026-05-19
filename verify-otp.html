@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify OTP</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <i class="fas fa-shield-alt"></i>
+                <h2>Verify OTP</h2>
+                <p>Enter the 6-digit code sent to your email</p>
+            </div>
+            <form id="otpForm">
+                <div class="input-group">
+                    <i class="fas fa-code"></i>
+                    <input type="text" id="otp" placeholder="6-digit OTP" maxlength="6" required>
+                </div>
+                <button type="submit" class="btn-primary">Verify OTP</button>
+                <p class="auth-footer"><a href="forgot-password.html">← Request new OTP</a></p>
+                <div id="message" class="message"></div>
+            </form>
+        </div>
+    </div>
+    <script>
+        const email = localStorage.getItem('resetEmail');
+        if (!email) window.location.href = 'forgot-password.html';
+        document.getElementById('otpForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const otp = document.getElementById('otp').value;
+            const msgDiv = document.getElementById('message');
+            msgDiv.textContent = '';
+            try {
+                const response = await fetch('http://localhost:8080/api/password-reset/verify-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+                msgDiv.style.color = 'green';
+                msgDiv.textContent = 'OTP verified! Redirecting...';
+                setTimeout(() => window.location.href = 'reset-password.html', 1500);
+            } catch (err) {
+                msgDiv.style.color = 'red';
+                msgDiv.textContent = err.message;
+            }
+        });
+    </script>
+</body>
+</html>

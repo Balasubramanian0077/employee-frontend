@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance History</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header"><i class="fas fa-chart-line"></i><h3>Employee Panel</h3></div>
+            <nav><ul>
+                <li><a href="employee.html">Dashboard</a></li>
+                <li><a href="attendance.html">Attendance</a></li>
+                <li class="active"><a href="attendance-history.html">History</a></li>
+                <li><a href="#" onclick="logout()">Logout</a></li>
+            </ul></nav>
+        </aside>
+        <main class="main-content">
+            <div class="top-nav">
+                <h1>Attendance History</h1>
+                <div class="profile"><span id="profileName"></span><i class="fas fa-user-circle"></i></div>
+            </div>
+            <div class="card">
+                <div class="filter-bar">
+                    <input type="month" id="monthPicker" />
+                    <button id="filterBtn" class="btn-primary">Filter</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="historyTable">
+                        <thead><tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Hours</th><th>Status</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = 'login.html';
+        document.getElementById('profileName').innerText = localStorage.getItem('name') || 'Employee';
+
+        async function loadHistory(month) {
+            let url = 'http://localhost:8080/api/attendance/my-history';
+            if (month) {
+                const [year, monthNum] = month.split('-');
+                url += `?year=${year}&month=${monthNum}`;
+            }
+            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) {
+                const data = await res.json();
+                const tbody = document.querySelector('#historyTable tbody');
+                tbody.innerHTML = '';
+                data.forEach(att => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).innerText = att.attendanceDate;
+                    row.insertCell(1).innerText = att.checkInTime ? new Date(att.checkInTime).toLocaleTimeString() : '-';
+                    row.insertCell(2).innerText = att.checkOutTime ? new Date(att.checkOutTime).toLocaleTimeString() : '-';
+                    row.insertCell(3).innerText = att.totalHours || '-';
+                    row.insertCell(4).innerText = att.status;
+                });
+            }
+        }
+
+        document.getElementById('filterBtn').addEventListener('click', () => {
+            const month = document.getElementById('monthPicker').value;
+            loadHistory(month);
+        });
+        document.getElementById('monthPicker').value = new Date().toISOString().slice(0,7);
+        loadHistory(document.getElementById('monthPicker').value);
+
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+    </script>
+</body>
+</html>

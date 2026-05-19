@@ -1,0 +1,103 @@
+.profile-card {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.profile-avatar-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.avatar-wrapper {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.avatar-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 8px;
+    text-align: center;
+    font-size: 12px;
+    transform: translateY(100%);
+    transition: transform 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.avatar-wrapper:hover .avatar-overlay {
+    transform: translateY(0);
+}
+
+.profile-upload-area {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 1rem 0;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.profile-upload-area:hover {
+    border-color: #4f46e5;
+    background: #f8fafc;
+}
+
+.profile-upload-area i {
+    font-size: 2rem;
+    color: #4f46e5;
+    margin-bottom: 0.5rem;
+}
+
+.preview-img {
+    max-width: 200px;
+    border-radius: 12px;
+    margin-top: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.toast-message {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #10b981;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    z-index: 1000;
+    display: none;
+}
+
+.toast-message.error {
+    background: #ef4444;
+}
+
+.info-row {
+    padding: 10px 0;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+.loading-spinner {
+    margin-top: 1rem;
+    color: #4f46e5;
+}

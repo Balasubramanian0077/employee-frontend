@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Attendance Overview</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header"><i class="fas fa-chart-line"></i><h3>Admin Panel</h3></div>
+            <nav><ul>
+                <li><a href="admin.html">Dashboard</a></li>
+                <li class="active"><a href="admin-attendance.html">Attendance</a></li>
+                <li><a href="#" onclick="logout()">Logout</a></li>
+            </ul></nav>
+        </aside>
+        <main class="main-content">
+            <div class="top-nav">
+                <h1>All Attendance Records</h1>
+                <div class="profile"><span id="profileName"></span><i class="fas fa-user-circle"></i></div>
+            </div>
+            <div class="card">
+                <div class="filter-bar">
+                    <select id="employeeSelect"><option value="">All Employees</option></select>
+                    <input type="date" id="fromDate" placeholder="From">
+                    <input type="date" id="toDate" placeholder="To">
+                    <select id="statusSelect"><option value="">All Status</option>
+                        <option>PRESENT</option><option>LATE</option><option>HALF_DAY</option><option>ABSENT</option>
+                    </select>
+                    <button id="filterBtn" class="btn-primary">Apply Filters</button>
+                    <button id="exportExcelBtn" class="btn-primary">Export to Excel</button>
+                </div>
+                <div class="table-responsive">
+                    <table id="attendanceTable">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Date</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th>Hours</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../js/auth.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '../login.html';
+        const role = localStorage.getItem('role');
+        if (role !== 'ADMIN' && role !== 'MANAGER') window.location.href = '../employee.html';
+        document.getElementById('profileName').innerText = localStorage.getItem('fullName') || 'Admin';
+
+        async function loadEmployees() {
+            const res = await fetch('http://localhost:8080/api/users/employees', { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) {
+                const employees = await res.json();
+                const select = document.getElementById('employeeSelect');
+                employees.forEach(emp => {
+                    const option = document.createElement('option');
+                    option.value = emp.id;
+                    option.text = emp.name + ' (' + emp.username + ')';
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        async function loadAttendance() {
+            const employeeId = document.getElementById('employeeSelect').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const status = document.getElementById('statusSelect').value;
+            let url = `http://localhost:8080/api/attendance/all?`;
+            if (employeeId) url += `employeeId=${employeeId}&`;
+            if (fromDate) url += `fromDate=${fromDate}&`;
+            if (toDate) url += `toDate=${toDate}&`;
+            if (status) url += `status=${status}`;
+            const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (res.ok) {
+                const data = await res.json();
+                const tbody = document.querySelector('#attendanceTable tbody');
+                tbody.innerHTML = '';
+                data.forEach(att => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).innerText = att.employee?.name || 'Unknown';
+                    row.insertCell(1).innerText = att.attendanceDate || '-';
+                    row.insertCell(2).innerText = att.checkInTime ? new Date(att.checkInTime).toLocaleTimeString() : '-';
+                    row.insertCell(3).innerText = att.checkOutTime ? new Date(att.checkOutTime).toLocaleTimeString() : '-';
+                    row.insertCell(4).innerText = att.totalHours || '-';
+                    row.insertCell(5).innerText = att.status;
+                });
+            }
+        }
+
+        // Excel export
+        document.getElementById('exportExcelBtn').addEventListener('click', async () => {
+            const employeeId = document.getElementById('employeeSelect').value;
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const status = document.getElementById('statusSelect').value;
+            let url = `http://localhost:8080/api/attendance/export-excel?`;
+            if (employeeId) url += `employeeId=${employeeId}&`;
+            if (fromDate) url += `fromDate=${fromDate}&`;
+            if (toDate) url += `toDate=${toDate}&`;
+            if (status) url += `status=${status}`;
+            
+            try {
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Export failed');
+                }
+                const blob = await response.blob();
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'attendance_report.xlsx';
+                link.click();
+                URL.revokeObjectURL(link.href);
+            } catch (err) {
+                alert('Failed to export Excel: ' + err.message);
+            }
+        });
+
+        document.getElementById('filterBtn').addEventListener('click', loadAttendance);
+        loadEmployees();
+        loadAttendance();
+
+        function logout() { localStorage.clear(); window.location.href = '../index.html'; }
+    </script>
+</body>
+</html>

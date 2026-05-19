@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-building"></i>
+                <span>EmpManage</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#help">Help</a></li>
+                <li><a href="login.html" class="btn-outline">Login</a></li>
+                <li><a href="register.html" class="btn-primary-small">Register</a></li>
+            </ul>
+            <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>Employee Management <span>System</span></h1>
+                <p>Streamline your workforce with our all-in-one platform. Manage tasks, leaves, expenses, and salaries effortlessly.</p>
+                <div class="hero-buttons">
+                    <a href="login.html" class="btn-primary">Get Started <i class="fas fa-arrow-right"></i></a>
+                    <a href="#about" class="btn-secondary">Learn More</a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <i class="fas fa-chart-line"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2>About Us</h2>
+            <p>We provide a comprehensive employee management solution for modern businesses.</p>
+            <div class="features">
+                <div class="feature-card">
+                    <i class="fas fa-tasks"></i>
+                    <h3>Task Management</h3>
+                    <p>Assign and track tasks with real-time status updates.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h3>Leave Tracking</h3>
+                    <p>Request and approve leaves seamlessly.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-receipt"></i>
+                    <h3>Expense Claims</h3>
+                    <p>Submit and approve expenses with proof uploads.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-money-bill"></i>
+                    <h3>Salary Management</h3>
+                    <p>Assign and view salaries by month.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Help Section -->
+    <section id="help" class="help">
+        <div class="container">
+            <h2>Help & Support</h2>
+            <div class="help-grid">
+                <div class="help-card">
+                    <i class="fas fa-question-circle"></i>
+                    <h3>FAQ</h3>
+                    <p>Find answers to common questions.</p>
+                    <a href="#">Read More →</a>
+                </div>
+                <div class="help-card">
+                    <i class="fas fa-envelope"></i>
+                    <h3>Contact Support</h3>
+                    <p>Email us at support@empmanage.com</p>
+                </div>
+                <div class="help-card">
+                    <i class="fas fa-phone-alt"></i>
+                    <h3>Call Us</h3>
+                    <p>+1 (555) 123-4567</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Employee Management System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.querySelector('.menu-toggle').addEventListener('click', () => {
+            document.querySelector('.nav-links').classList.toggle('active');
+        });
+    </script>
+</body>
+</html>

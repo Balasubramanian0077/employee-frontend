@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        /* profile dropdown styles (keep as before) */
+        .profile { position: relative; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .profile-dropdown { position: absolute; top: 100%; right: 0; background: white; min-width: 180px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; display: none; margin-top: 8px; }
+        .profile-dropdown.show { display: block; }
+        .dropdown-item { padding: 10px 16px; font-size: 14px; color: #1e293b; transition: background 0.2s; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .dropdown-item:hover { background: #f1f5f9; }
+        #profileImage { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; margin-left: 8px; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header"><i class="fas fa-chart-line"></i><h3>Manager Portal</h3></div>
+            <nav><ul>
+                <li class="active"><a href="#" onclick="showSection('dashboard')"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="#" onclick="showSection('assignTask')"><i class="fas fa-tasks"></i> Assign Task</a></li>
+                <li><a href="#" onclick="showSection('viewTasks')"><i class="fas fa-list"></i> View Tasks</a></li>
+                <li><a href="#" onclick="showSection('leaveRequests')"><i class="fas fa-calendar-alt"></i> Leave Requests</a></li>
+                <li><a href="#" onclick="showSection('expenseRequests')"><i class="fas fa-receipt"></i> Expense Requests</a></li>
+                <li><a href="#" onclick="showSection('reports')"><i class="fas fa-file-alt"></i> Reports</a></li>
+                <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul></nav>
+        </aside>
+        <main class="main-content">
+            <div class="top-nav">
+                <div class="page-title"><h1>Manager Dashboard</h1><p>Welcome, <span id="userName"></span></p></div>
+                <div class="profile" id="profileContainer">
+                    <span id="profileName"></span>
+                    <i class="fas fa-user-circle" id="profileIcon"></i>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <div class="dropdown-item" id="editProfilePicBtn"><i class="fas fa-camera"></i> Edit Profile Picture</div>
+                    </div>
+                    <input type="file" id="profileImageInput" accept="image/jpeg,image/jpg,image/png" style="display: none;">
+                </div>
+            </div>
+
+            <!-- DASHBOARD -->
+            <div id="dashboard" class="section">
+                <div class="card">
+                    <h2>Quick Stats</h2>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px">
+                        <div style="background:#eef2ff; padding:20px; border-radius:16px"><i class="fas fa-tasks"></i><h3 id="activeTasksCount">0</h3><p>Active Tasks</p></div>
+                        <div style="background:#d1fae5; padding:20px; border-radius:16px"><i class="fas fa-clock"></i><h3 id="pendingLeavesCount">0</h3><p>Pending Leaves</p></div>
+                        <div style="background:#fef3c7; padding:20px; border-radius:16px"><i class="fas fa-receipt"></i><h3 id="pendingExpensesCount">0</h3><p>Pending Expenses</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ASSIGN TASK -->
+            <div id="assignTask" class="section hidden">
+                <div class="card">
+                    <h2>Assign New Task</h2>
+                    <form id="taskForm">
+                        <div class="form-group"><label>Title</label><input type="text" id="title" required></div>
+                        <div class="form-group"><label>Description</label><textarea rows="3" id="desc" required></textarea></div>
+                        <div class="form-group"><label>Employee ID</label><input type="number" id="empId" required></div>
+                        <button type="submit" class="btn-primary">Assign Task</button>
+                    </form>
+                    <div id="taskMsg"></div>
+                </div>
+            </div>
+
+            <!-- VIEW TASKS -->
+            <div id="viewTasks" class="section hidden">
+                <div class="card">
+                    <h2>Assigned Tasks</h2>
+                    <div class="table-responsive"><table id="tasksTable">
+                        <thead><tr><th>ID</th><th>Title</th><th>Assigned To</th><th>Status</th></tr></thead>
+                        <tbody></tbody>
+                    </table></div>
+                </div>
+            </div>
+
+            <!-- LEAVE REQUESTS -->
+            <div id="leaveRequests" class="section hidden">
+                <div class="card">
+                    <h2>Leave Requests</h2>
+                    <div class="table-responsive"><table id="leaveTable">
+                        <thead><tr><th>ID</th><th>Employee</th><th>Dates</th><th>Reason</th><th>Action</th></tr></thead>
+                        <tbody></tbody>
+                    </table></div>
+                </div>
+            </div>
+
+            <!-- EXPENSE REQUESTS -->
+            <div id="expenseRequests" class="section hidden">
+                <div class="card">
+                    <h2>Expense Requests</h2>
+                    <div class="table-responsive"><table id="expenseTable">
+                        <thead><tr><th>ID</th><th>Employee</th><th>Amount</th><th>Reason</th><th>Proof</th><th>Action</th></tr></thead>
+                        <tbody></tbody>
+                    </table></div>
+                </div>
+            </div>
+
+            <!-- REPORTS (Generate Report) -->
+            <div id="reports" class="section hidden">
+                <div class="card">
+                    <h2>Generate Report for Admin</h2>
+                    <form id="reportForm">
+                        <div class="form-group"><label>Report Content</label><textarea rows="4" id="reportContent" required></textarea></div>
+                        <button type="submit" class="btn-primary">Send to Admin</button>
+                    </form>
+                    <div id="reportMsg" class="inline-message"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/task.js"></script>
+    <script src="../js/leave.js"></script>
+    <script src="../js/expense.js"></script>
+    <script src="../js/report.js"></script>
+    <script>
+        const userName = localStorage.getItem('fullName') || 'Manager';
+        document.getElementById('profileName').innerText = userName;
+        document.getElementById('userName').innerText = userName;
+
+        // Profile picture logic (same as before)
+        const profileContainer = document.getElementById('profileContainer');
+        const dropdown = document.getElementById('profileDropdown');
+        const editBtn = document.getElementById('editProfilePicBtn');
+        const fileInput = document.getElementById('profileImageInput');
+        const profileIcon = document.getElementById('profileIcon');
+        profileContainer.addEventListener('click', e => { e.stopPropagation(); dropdown.classList.toggle('show'); });
+        document.addEventListener('click', () => dropdown.classList.remove('show'));
+        editBtn.addEventListener('click', e => { e.stopPropagation(); fileInput.click(); dropdown.classList.remove('show'); });
+        async function loadProfilePicture() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+                const res = await fetch('http://localhost:8080/api/users/profile', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.profilePicture) {
+                        const img = document.createElement('img');
+                        img.id = 'profileImage';
+                        img.src = 'http://localhost:8080' + data.profilePicture;
+                        profileIcon.style.display = 'none';
+                        profileContainer.insertBefore(img, profileIcon.nextSibling);
+                    }
+                }
+            } catch (err) { console.error(err); }
+        }
+        fileInput.addEventListener('change', async e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                let img = document.getElementById('profileImage');
+                if (!img) { img = document.createElement('img'); img.id = 'profileImage'; profileIcon.style.display = 'none'; profileContainer.insertBefore(img, profileIcon.nextSibling); }
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+            const formData = new FormData();
+            formData.append('file', file);
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('http://localhost:8080/api/users/upload-profile-picture', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+                const img = document.getElementById('profileImage');
+                if (img) img.src = 'http://localhost:8080' + data.profilePictureUrl + '?t=' + Date.now();
+                alert('Profile picture updated!');
+            } catch (err) { alert('Upload failed: ' + err.message); }
+        });
+        loadProfilePicture();
+
+        // Dashboard data functions
+        async function loadTasks() {
+            try {
+                const tasks = await fetchTasks();
+                renderTasks(tasks);
+                updateStats(tasks, null, null);
+            } catch (err) { console.error('Error loading tasks:', err); }
+        }
+        async function loadLeaveRequests() {
+            try {
+                const leaves = await fetchPendingLeaves();
+                renderLeaves(leaves);
+                updateStats(null, leaves, null);
+            } catch (err) { console.error('Error loading leaves:', err); }
+        }
+        async function loadExpenseRequests() {
+            try {
+                const expenses = await fetchPendingExpenses();
+                renderExpenses(expenses);
+                updateStats(null, null, expenses);
+            } catch (err) { console.error('Error loading expenses:', err); }
+        }
+
+        function renderTasks(tasks) {
+            const tbody = document.querySelector('#tasksTable tbody');
+            if (!tbody) return;
+            if (!tasks || tasks.length === 0) { tbody.innerHTML = '<tr><td colspan="4">No tasks assigned yet. </td></tr>'; return; }
+            tbody.innerHTML = tasks.map(t => `
+                <tr>
+                    <td>${t.id}</td>
+                    <td>${t.title}</td>
+                    <td>${t.assignedTo?.name || t.assignedTo?.username || 'Unknown'}</td>
+                    <td><span class="status-badge ${t.status === 'PENDING' ? 'status-pending' : t.status === 'IN_PROGRESS' ? 'status-in-progress' : 'status-completed'}">${t.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderLeaves(leaves) {
+            const tbody = document.querySelector('#leaveTable tbody');
+            if (!tbody) return;
+            if (!leaves || leaves.length === 0) { tbody.innerHTML = '<tr><td colspan="5">No pending leave requests. </td></tr>'; return; }
+            tbody.innerHTML = leaves.map(l => `
+                <tr>
+                    <td>${l.id}</td>
+                    <td>${l.user?.name || l.user?.username || 'Unknown'}</td>
+                    <td>${l.startDate} to ${l.endDate}</td>
+                    <td>${l.reason}</td>
+                    <td>
+                        <button class="btn-sm btn-approve" onclick="handleApproveLeave(${l.id})">Approve</button>
+                        <button class="btn-sm btn-reject" onclick="handleRejectLeave(${l.id})">Reject</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderExpenses(expenses) {
+            const tbody = document.querySelector('#expenseTable tbody');
+            if (!tbody) return;
+            if (!expenses || expenses.length === 0) { tbody.innerHTML = '<table><td colspan="6">No pending expense requests. </td></tr>'; return; }
+            tbody.innerHTML = expenses.map(e => `
+                <tr>
+                    <td>${e.id}</td>
+                    <td>${e.user?.name || e.user?.username || 'Unknown'}</td>
+                    <td>$${e.amount}</td>
+                    <td>${e.reason}</td>
+                    <td>${e.proofUrl ? `<a href="http://localhost:8080${e.proofUrl}" target="_blank">View</a>` : '-'}</td>
+                    <td>
+                        <button class="btn-sm btn-approve" onclick="handleApproveExpense(${e.id})">Approve</button>
+                        <button class="btn-sm btn-reject" onclick="handleRejectExpense(${e.id})">Reject</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateStats(tasks, leaves, expenses) {
+            if (tasks) document.getElementById('activeTasksCount').innerText = tasks.filter(t => t.status !== 'COMPLETED').length;
+            if (leaves) document.getElementById('pendingLeavesCount').innerText = leaves.length;
+            if (expenses) document.getElementById('pendingExpensesCount').innerText = expenses.length;
+        }
+
+        window.handleApproveLeave = async (id) => { try { await approveLeave(id, true); alert('Approved'); await loadLeaveRequests(); await loadTasks(); } catch(err) { alert(err.message); } };
+        window.handleRejectLeave = async (id) => { try { await approveLeave(id, false); alert('Rejected'); await loadLeaveRequests(); await loadTasks(); } catch(err) { alert(err.message); } };
+        window.handleApproveExpense = async (id) => { try { await approveExpense(id, true); alert('Approved'); await loadExpenseRequests(); await loadTasks(); } catch(err) { alert(err.message); } };
+        window.handleRejectExpense = async (id) => { try { await approveExpense(id, false); alert('Rejected'); await loadExpenseRequests(); await loadTasks(); } catch(err) { alert(err.message); } };
+
+        document.getElementById('taskForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('desc').value;
+            const assignedTo = { id: parseInt(document.getElementById('empId').value) };
+            const msgDiv = document.getElementById('taskMsg');
+            try {
+                await createTask({ title, description, assignedTo });
+                msgDiv.style.color = 'green'; msgDiv.innerText = 'Task assigned successfully!';
+                await loadTasks();
+                document.getElementById('title').value = ''; document.getElementById('desc').value = ''; document.getElementById('empId').value = '';
+                setTimeout(() => msgDiv.innerText = '', 3000);
+            } catch (err) { msgDiv.style.color = 'red'; msgDiv.innerText = err.message; }
+        });
+
+        document.getElementById('reportForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const content = document.getElementById('reportContent').value;
+            const msgDiv = document.getElementById('reportMsg');
+            try {
+                await generateReport(content);
+                msgDiv.style.color = 'green'; msgDiv.innerText = 'Report sent to admin!';
+                document.getElementById('reportContent').value = '';
+                setTimeout(() => msgDiv.innerText = '', 3000);
+            } catch (err) { msgDiv.style.color = 'red'; msgDiv.innerText = err.message; }
+        });
+
+        // Section switcher with debug log
+        function showSection(sectionId) {
+            console.log('Showing section:', sectionId);
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            const target = document.getElementById(sectionId);
+            if (target) {
+                target.classList.remove('hidden');
+            } else {
+                console.error('Section not found:', sectionId);
+            }
+            if (sectionId === 'viewTasks') loadTasks();
+            if (sectionId === 'leaveRequests') loadLeaveRequests();
+            if (sectionId === 'expenseRequests') loadExpenseRequests();
+            if (sectionId === 'dashboard') { loadTasks(); loadLeaveRequests(); loadExpenseRequests(); }
+        }
+
+        function logout() { localStorage.clear(); window.location.href = '../index.html'; }
+        window.showSection = showSection;
+        loadTasks(); loadLeaveRequests(); loadExpenseRequests();
+    </script>
+</body>
+</html>
